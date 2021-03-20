@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pl">
+
+<head>
+	<title>Game of Life</title>
+	<link rel="stylesheet" href="../css/style.css" type="text/css" />
+	<meta charset="UTF-8" />
+	<meta name="author" content="Tomasz Rajchel" />
+	<link rel="icon" href="../media/favicon.ico" type="image/x-icon" />
+	<script src="../js/main.js"></script>
+</head>
+
+<body>
+	<div id="wrapper">
+		<div id="gameDiv">
+			<canvas id="gameCanvas" width="640" height="480"></canvas>
+			<div id="counter">0</div>
+		</div>
+		<div id="controls">
+			<ul id="controlsList">
+				<li>
+					<button id="btnStart">Start</button>
+					<button id="btnStop">Stop</button>
+				</li>
+				<li><input type="text" id="rule" value="B3/S23"></li>
+				<li>
+					<input id="resX" type="number" class="input-res" value="640" max="1920" min="0">
+					<span>x</span>
+					<input id="resY" type="number" class="input-res" value="480" max="1080" min="0">
+					<button id="changeSize">Change size</button>
+				</li>
+				<li>
+					<input id="popSlider" type="range" min="0" max="100" value="50" class="slider" id="initialPopulation">
+					<span id="popValue"></span>
+				</li>
+			</ul>
+			<div id="graphs">
+				Wykresy
+			</div>
+		</div>
+	</div>
+
+
+
+	<footer>
+		<p>Tomasz Rajchel 2021</p>
+	</footer>
+</body>
+</html>
