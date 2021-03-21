@@ -3,7 +3,7 @@ html {
 }
 body {
 	margin: 0;
-	background-color: #ffe;
+	background-color: #fff;
 	font-family: Arial, Helvetica, sans-serif;
 	color:#444;
 	min-height:100%;
@@ -17,7 +17,7 @@ body {
 
 #gameDiv {
 	padding-top: 16px;
-	border: solid 1px red;
+	/* border: solid 1px red; */
 }
 
 #counter {
@@ -33,7 +33,8 @@ canvas {
 #controls {
 	flex:20%;
 	padding:12px;
-	border: solid 1px red;
+	font-size: medium;
+	/* border: solid 1px red; */
 }
 
 #controlsList {
@@ -46,6 +47,13 @@ canvas {
 #controlsList > li {
 	padding: 4px;
 }
+
+.rule {
+	width: 4em;
+}
+
+
+
 
 footer {
 	position: absolute;

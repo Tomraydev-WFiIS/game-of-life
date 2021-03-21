@@ -37,12 +37,14 @@ function main() {
             this.alive_color = 'rgba(64,64,64,1)';
             this.dead_color = 'white';
             this.counter = 0;
+            this.born_rules = [3];
+            this.survive_rules = [2,3];
 
             // board
             this.board = Array.from(Array(this.rows), () => new Array(this.columns));
             for (let i = 0; i < this.rows; i++){
                 for(let j = 0; j < this.columns; j++){
-                    this.board[i][j] = new Cell((i+j)%2);
+                    this.board[i][j] = new Cell();
                 }
             }
         }
@@ -82,13 +84,13 @@ function main() {
             let alive_neighbours = this.getAliveNeighbours(i,j);
             let cell = this.board[i][j];
             if (cell.state==0) {
-                if (alive_neighbours==3){
+                if (this.born_rules.includes(alive_neighbours)){
                     return 1;
                 } else {
                     return 0;
                 }
             } else if (cell.state==1) {
-                if (alive_neighbours==2 || alive_neighbours==3){
+                if (this.survive_rules.includes(alive_neighbours)){
                     return 1;
                 } else {
                     return 0;
@@ -107,7 +109,6 @@ function main() {
                     if (cell.state==1) alive_count++;
                 }
             }
-            // console.log(alive_count)
             return alive_count;
         }
 
@@ -131,19 +132,26 @@ function main() {
     }
 
     function startGame() {
-        let step = 0;
-        
+        let born_rules = parseRules(document.getElementById("bornRules").value);
+        let survive_rules = parseRules(document.getElementById("surviveRules").value);
+        game.born_rules = born_rules;
+        game.survive_rules = survive_rules;
+
+        game.initial_board = deepCopyBoard(game.board);
         timer = setInterval(function() {
             game.step();
             game.draw();
-            step++;
-            document.getElementById("counter").innerHTML = step;
-            if (step >= MAX_STEPS) stopGame();
+            document.getElementById("counter").innerHTML = game.counter;
+            if (game.counter >= MAX_STEPS) stopGame();
         }, DT);
     }
 
     function stopGame() {
         clearInterval(timer);
+    }
+
+    function parseRules(input){
+        return input.split("").map(Number);
     }
 
 
@@ -164,14 +172,21 @@ function main() {
         let content = document.querySelector('#gameDiv')
         content.prepend(newCanvas);
         init();
+        let initial_alive = document.getElementById("popSlider").value/100.0;
+        game.randomize(initial_alive);
+        game.draw();
     });
 
     document.getElementById("btnStart").addEventListener("click", function() {
         startGame();
+        document.getElementById("btnStop").disabled = false;
+        this.disabled = true;
     });
 
     document.getElementById("btnStop").addEventListener("click", function() {
         stopGame();
+        document.getElementById("btnStart").disabled = false;
+        this.disabled = true;
     });
 
     // Update slider (each time you drag the slider handle)
@@ -179,9 +194,9 @@ function main() {
     let sliderValue = document.getElementById("popValue");
     sliderValue.innerHTML = slider.value/100.0;
     slider.oninput = function() {
-        let percent_alive = slider.value/100.0;
-        sliderValue.innerHTML = percent_alive;
-        game.randomize(percent_alive);
+        let initial_alive = slider.value/100.0;
+        sliderValue.innerHTML = initial_alive;
+        game.randomize(initial_alive);
         game.draw()
     }
 
@@ -193,13 +208,11 @@ function main() {
     let game;
     let timer;
     const CELL_SIZE = 8;
-    const DT = 100; // Time step [ms]
-    const MAX_STEPS = 1000;
+    const DT = 50; // Time step [ms]
+    const MAX_STEPS = Infinity;
     init();
     game.randomize();
     game.draw();
-    // game.step()
-
 }
 
 window.onload = main;
