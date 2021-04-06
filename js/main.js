@@ -21,6 +21,26 @@ function main() {
             }
         }
     }
+
+    function drawGrid(ctx, canvas){
+        let bw = canvas.width;
+        let bh = canvas.height;
+        let shift = 0.5;
+        ctx.beginPath();
+        for (var x = 0; x <= bw; x += CELL_SIZE) {
+            ctx.moveTo(shift + x, 0);
+            ctx.lineTo(shift + x, bh);
+        }
+
+        for (var y = 0; y <= bh; y += CELL_SIZE) {
+            ctx.moveTo(0, shift + y);
+            ctx.lineTo(bw, shift + y);
+        }
+
+        ctx.strokeStyle = 'rgba(128,128,128,0.1)';
+        ctx.stroke();
+    }
+
     class Cell {
         constructor(state=0) {
             this.state = state;
@@ -39,6 +59,7 @@ function main() {
             this.counter = 0;
             this.born_rules = [3];
             this.survive_rules = [2,3];
+            this.alive_count = 0;
 
             // board
             this.board = Array.from(Array(this.rows), () => new Array(this.columns));
@@ -60,20 +81,24 @@ function main() {
         }
 
         randomize(percent_alive=0.5) {
+            this.alive_count = 0;
             for (let i = 0; i < this.rows; i++){
                 for(let j = 0; j < this.columns; j++){
                     let state = (Math.random() < percent_alive)?1:0;
                     this.board[i][j].state = state;
+                    if (state==1) this.alive_count++;
                 }
             }
         }
 
         step() {
+            this.alive_count = 0;
             let new_board = deepCopyBoard(this.board);
             for (let i = 0; i < this.rows; i++){
                 for(let j = 0; j < this.columns; j++){
                     let newState = this.getNewState(i,j);
                     new_board[i][j].state = newState;
+                    if (newState==1) this.alive_count++;
                 }
             }
             this.board = new_board;
@@ -101,15 +126,15 @@ function main() {
         }
 
         getAliveNeighbours(i,j) {
-            let alive_count = 0;
+            let alive_neighbours_count = 0;
             for(let k = i-1; k <=i+1; k++){
                 for(let l = j-1; l <=j+1; l++){
                     if (k==i && l==j) continue;
                     let cell = this.getCell(k,l);
-                    if (cell.state==1) alive_count++;
+                    if (cell.state==1) alive_neighbours_count++;
                 }
             }
-            return alive_count;
+            return alive_neighbours_count;
         }
 
         getCell(i,j){
@@ -118,6 +143,7 @@ function main() {
             let l = (this.columns+j) % this.columns;
             return this.board[k][l];
         }
+
     }
     function deepCopyBoard(old_board) {
         let rows = old_board.length;
@@ -136,18 +162,29 @@ function main() {
         let survive_rules = parseRules(document.getElementById("surviveRules").value);
         game.born_rules = born_rules;
         game.survive_rules = survive_rules;
-
         game.initial_board = deepCopyBoard(game.board);
+        updateData(aliveChart, game.counter, 100*game.alive_count/(game.rows*game.columns));
+
         timer = setInterval(function() {
             game.step();
             game.draw();
+            if (gameGrid) drawGrid(ctx, canvas);
             document.getElementById("counter").innerHTML = game.counter;
+            updateData(aliveChart, game.counter, 100*game.alive_count/(game.rows*game.columns));
             if (game.counter >= MAX_STEPS) stopGame();
         }, DT);
     }
 
     function stopGame() {
         clearInterval(timer);
+    }
+    function stepGame() {
+        game.step();
+        game.draw();
+        if (gameGrid) drawGrid(ctx, canvas);
+        document.getElementById("counter").innerHTML = game.counter;
+        updateData(aliveChart, game.counter, 100*game.alive_count/(game.rows*game.columns));
+        if (game.counter >= MAX_STEPS) stopGame();
     }
 
     function parseRules(input){
@@ -159,16 +196,16 @@ function main() {
 // ****************************** Event listeners ******************************
     document.getElementById("changeSize").addEventListener("click", function() {
         // remove old canvas
-        let resX = document.getElementById("resX").value;
-        let resY = document.getElementById("resY").value;
+        let sizeX = document.getElementById("sizeX").value;
+        let sizeY = document.getElementById("sizeY").value;
         let oldCanvas = document.querySelector('#gameCanvas');
         oldCanvas.parentNode.removeChild(oldCanvas);
 
         // create new canvas
         let newCanvas = document.createElement("CANVAS");
         newCanvas.id = "gameCanvas";
-        newCanvas.width = resX;
-        newCanvas.height = resY;
+        newCanvas.width = sizeX*CELL_SIZE;
+        newCanvas.height = sizeY*CELL_SIZE;
         let content = document.querySelector('#gameDiv')
         content.prepend(newCanvas);
         init();
@@ -188,6 +225,18 @@ function main() {
         document.getElementById("btnStart").disabled = false;
         this.disabled = true;
     });
+    document.getElementById("btnStep").addEventListener("click", function() {
+        stepGame();
+    });
+    document.getElementById("gameGrid").addEventListener("click", function() {
+        gameGrid = document.getElementById("gameGrid").checked;
+        if (gameGrid){
+            drawGrid(ctx, canvas);
+        } else {
+            ctx.beginPath();
+            game.draw();
+        }
+    });
 
     // Update slider (each time you drag the slider handle)
     let slider = document.getElementById("popSlider");
@@ -200,6 +249,38 @@ function main() {
         game.draw()
     }
 
+
+// ****************************** Charts ******************************
+    var config = {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Alive Cells',
+                backgroundColor: 'rgb(115, 166, 87)',
+                borderColor: 'rgb(115, 166, 87)',
+                data: [],
+                // pointRadius: 0
+            }]
+        },
+        options: {
+            scales: {y: {min: 0, max: 100,}},
+            animation: {duration: 0}
+        }
+    };
+
+    let aliveCtx = document.getElementById('aliveCanvas').getContext('2d');
+    let aliveChart = new Chart(aliveCtx, config);
+
+    function updateData(chart, label, data) {
+        if (chart.data.labels.length > 50) {
+            chart.data.labels.shift();
+            chart.data.datasets[0].data.shift();
+        }
+        chart.data.labels.push(label);
+        chart.data.datasets[0].data.push(data);
+        chart.update();
+    }
 // ****************************** Init ******************************
     let canvas;
     let ctx;
@@ -207,12 +288,13 @@ function main() {
     let columns;
     let game;
     let timer;
+    let gameGrid = true;
     const CELL_SIZE = 8;
-    const DT = 50; // Time step [ms]
+    const DT = 0; // Time step [ms]
     const MAX_STEPS = Infinity;
     init();
     game.randomize();
     game.draw();
+    if (gameGrid) drawGrid(ctx, canvas);
 }
-
 window.onload = main;

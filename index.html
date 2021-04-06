@@ -1,13 +1,14 @@
 <!doctype html>
-<html lang="pl">
+<html lang="en">
 
 <head>
 	<title>Game of Life</title>
-	<link rel="stylesheet" href="../css/style.css" type="text/css" />
+	<link rel="stylesheet" href="css/style.css" type="text/css" />
 	<meta charset="UTF-8" />
 	<meta name="author" content="Tomasz Rajchel" />
-	<link rel="icon" href="../media/favicon.ico" type="image/x-icon" />
-	<script src="../js/main.js"></script>
+	<link rel="icon" href="media/favicon.ico" type="image/x-icon" />
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script src="js/main.js"></script>
 </head>
 
 <body>
@@ -21,6 +22,7 @@
 				<li>
 					<button id="btnStart">Start</button>
 					<button id="btnStop" disabled>Stop</button>
+					<button id="btnStep">&gt</button>
 				</li>
 				<li>
 					<span>B </span><input type="text" id="bornRules" class="rule" value="3">
@@ -28,24 +30,25 @@
 				</li>
 				
 				<li>
-					<input id="resX" type="number" class="input-res" value="800" max="1920" min="0">
+					<input id="sizeX" type="number" value="100" max="240" min="0">
 					<span>x</span>
-					<input id="resY" type="number" class="input-res" value="600" max="1080" min="0">
+					<input id="sizeY" type="number" value="75" max="135" min="0">
 					<button id="changeSize">Change size</button>
 				</li>
 				<li>
 					<input id="popSlider" type="range" min="0" max="100" value="50" class="slider" id="initialPopulation">
 					<span id="popValue"></span>
 				</li>
+				<li>
+					<input type="checkbox" name="gameGrid" id="gameGrid" checked>
+					<label for="gameGrid">grid</label>
+				</li>
 			</ul>
 			<div id="graphs">
-				<!-- Wykresy -->
+				<canvas id="aliveCanvas"></canvas>
 			</div>
 		</div>
 	</div>
-
-
-
 	<footer>
 		<p>Tomasz Rajchel 2021</p>
 	</footer>
