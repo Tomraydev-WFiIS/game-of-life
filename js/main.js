@@ -157,12 +157,15 @@ function main() {
         return new_board;
     }
 
-    function startGame() {
+    function parseGameConfig() {
         let born_rules = parseRules(document.getElementById("bornRules").value);
         let survive_rules = parseRules(document.getElementById("surviveRules").value);
         game.born_rules = born_rules;
         game.survive_rules = survive_rules;
-        game.initial_board = deepCopyBoard(game.board);
+    }
+
+    function startGame() {
+        parseGameConfig();
         updateData(aliveChart, game.counter, 100*game.alive_count/(game.rows*game.columns));
 
         timer = setInterval(function() {
@@ -179,6 +182,7 @@ function main() {
         clearInterval(timer);
     }
     function stepGame() {
+        parseGameConfig();
         game.step();
         game.draw();
         if (gameGrid) drawGrid(ctx, canvas);
